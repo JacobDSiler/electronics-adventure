@@ -113,10 +113,10 @@
   EA.band = () => (EA.P() || {}).band || 'spark';
 
   /* ================= progress ================= */
-  function PR(pid) { pid = pid || D.cur; if (!pid) return null; return D.prog[pid] || (D.prog[pid] = { labs: {}, quiz: {}, missions: {}, badges: {} }); }
+  function PR(pid) { pid = pid || D.cur; if (!pid) return null; return D.prog[pid] || (D.prog[pid] = { labs: {}, quiz: {}, missions: {}, badges: {}, games: {} }); }
   EA.PR = PR;
   EA.labStars = (id, pid) => ((PR(pid) || { labs: {} }).labs[id] || {}).stars || 0;
-  EA.totalStars = pid => { const pr = PR(pid); if (!pr) return 0; let n = 0; for (const k in pr.labs) n += pr.labs[k].stars || 0; for (const k in pr.quiz) n += pr.quiz[k].pct >= 90 ? 3 : pr.quiz[k].pct >= 70 ? 2 : 1; return n; };
+  EA.totalStars = pid => { const pr = PR(pid); if (!pr) return 0; let n = 0; for (const k in pr.labs) n += pr.labs[k].stars || 0; for (const k in pr.quiz) n += pr.quiz[k].pct >= 90 ? 3 : pr.quiz[k].pct >= 70 ? 2 : 1; for (const k in (pr.games || {})) n += pr.games[k].stars || 0; return n; };
   EA.unit = id => EA.units.find(u => u.id === Number(id));
   EA.unitStatus = function (u, pid) {
     const pr = PR(pid) || { labs: {}, quiz: {}, missions: {}, badges: {} };
@@ -127,6 +127,13 @@
     const parts = u.labs.length + 1;
     const pct = Math.round(((labsDone + (quizPass ? 1 : 0)) / parts) * 100);
     return { labsDone, labsTotal: u.labs.length, quizBest, quizPass, mDone, mTotal: u.sessions.length, badge: !!pr.badges[u.id], pct };
+  };
+  EA.recordGame = function (gameId, stars, correct, total) {
+    const pr = PR(); if (!pr) return;
+    pr.games = pr.games || {};
+    const old = pr.games[gameId] || { stars: 0, plays: 0 };
+    pr.games[gameId] = { stars: Math.max(old.stars || 0, stars), plays: (old.plays || 0) + 1, best: Math.max(old.best || 0, correct || 0), at: Date.now() };
+    save();
   };
   EA.recordLab = function (labId, stars, score, max) {
     const pr = PR(); if (!pr) return;
@@ -221,7 +228,8 @@
     const out = Object.assign({}, a);
     for (const pid of Object.keys(b || {})) {
       const x = out[pid] || { labs: {}, quiz: {}, missions: {}, badges: {} }, y = b[pid] || {};
-      const m = { labs: Object.assign({}, x.labs), quiz: Object.assign({}, x.quiz), missions: Object.assign({}, y.missions || {}, x.missions), badges: Object.assign({}, y.badges || {}, x.badges) };
+      const m = { labs: Object.assign({}, x.labs), quiz: Object.assign({}, x.quiz), missions: Object.assign({}, y.missions || {}, x.missions), badges: Object.assign({}, y.badges || {}, x.badges), games: Object.assign({}, x.games || {}) };
+      for (const k in (y.games || {})) { const c = m.games[k]; if (!c || (y.games[k].stars || 0) > (c.stars || 0) || ((y.games[k].stars || 0) === (c.stars || 0) && (y.games[k].plays || 0) > (c.plays || 0))) m.games[k] = y.games[k]; }
       for (const k in (y.labs || {})) { const c = m.labs[k]; if (!c || (y.labs[k].stars || 0) > (c.stars || 0)) m.labs[k] = y.labs[k]; }
       for (const k in (y.quiz || {})) { const c = m.quiz[k]; if (!c || (y.quiz[k].pct || 0) > (c.pct || 0)) m.quiz[k] = y.quiz[k]; }
       out[pid] = m;
@@ -274,7 +282,7 @@
   EA.back = fallback => { if (history.length > 1) history.back(); else EA.go(fallback || '/'); };
   function seg() { const raw = (location.hash.slice(1) || '/'); const [path, qs] = raw.split('?'); return { parts: path.split('/').filter(Boolean), qs: new URLSearchParams(qs || '') }; }
 
-  const NAV = [['/', '🏠', 'Home'], ['/badges', '🏅', 'Badges'], ['/notebook', '📓', 'Notebook'], ['/sprouts', '🌱', 'Sparks'], ['/parent', '🔒', 'Parents']];
+  const NAV = [['/', '🏠', 'Home'], ['/games', '🎮', 'Games'], ['/badges', '🏅', 'Badges'], ['/notebook', '📓', 'Notebook'], ['/sprouts', '🌱', 'Sparks'], ['/parent', '🔒', 'Parents']];
   function navBar(active) {
     return h('nav', { class: 'nav' }, h('div', null, NAV.map(([p, e, t]) => h('button', { class: active === p ? 'on' : '', onclick: () => EA.go(p) }, h('span', { class: 'e' }, e), t))));
   }
@@ -304,6 +312,7 @@
       else if (r === 'quiz') app.append(screenQuiz(parts[1]));
       else if (r === 'badges') { app.append(screenBadges()); nav = '/badges'; }
       else if (r === 'notebook') { app.append(screenNotebook(parts[1], qs)); nav = parts[1] ? null : '/notebook'; }
+      else if (r === 'games') { app.append(EA.screens.games ? EA.screens.games() : h('p', null, 'Games missing.')); nav = '/games'; }
       else if (r === 'sprouts') { app.append(screenSprouts(parts[1])); nav = parts[1] ? null : '/sprouts'; }
       else if (r === 'parent') { app.append(EA.screens.parent ? EA.screens.parent() : h('p', null, 'Parent area missing.')); nav = '/parent'; }
       else { app.append(screenHome()); nav = '/'; }
@@ -334,6 +343,7 @@
         h('div', { class: 'center' }, h('div', { class: 'bigem' }, '🌱'), h('h2', null, 'Little Sparks'), h('p', { class: 'muted mt8' }, 'Big buttons for little hands!'),
           h('button', { class: 'btn big mint mt12', onclick: () => EA.go('/sprouts') }, 'Play 🌱'))));
     }
+    wrap.append(h('button', { class: 'arcade', onclick: () => EA.go('/games') }, h('span', { class: 'em' }, '🎮'), h('span', { class: 'tx' }, h('b', null, 'Electronics Games'), h('span', null, 'Quick games: solo, or play with other families'))));
     const q = h('div', { class: 'quest', style: band === 'sprout' ? { marginTop: '8px' } : {} });
     EA.units.forEach(u => {
       const st = EA.unitStatus(u);

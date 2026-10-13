@@ -71,6 +71,12 @@ input,textarea,select{font-family:inherit;font-size:1rem}
 label.lbl{display:block;font-weight:800;margin:12px 0 6px;color:var(--navy)}
 
 /* ---------- quest map ---------- */
+.arcade{display:flex;align-items:center;gap:12px;width:100%;margin:-34px 0 14px;position:relative;text-align:left;border:none;border-radius:20px;padding:14px 16px;background:linear-gradient(135deg,#FF6B6B,#e8604c);color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.18);font:inherit}
+.card + .arcade{margin-top:14px}.arcade + .quest{margin-top:0}
+.arcade .em{font-size:2.2rem}.arcade .tx{display:flex;flex-direction:column}.arcade .tx b{font-family:'Baloo 2',sans-serif;font-size:1.2rem}.arcade .tx span{font-size:.85rem;opacity:.95}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.acard{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;background:#fff;border:3px solid var(--navy,#1A2E4A);border-radius:18px;padding:14px 10px;box-shadow:0 4px 0 var(--navy,#1A2E4A);font:inherit;color:inherit}
+.acard .em{font-size:2.2rem}.acard .astars{letter-spacing:.1em}
 .quest{display:flex;flex-direction:column;gap:14px;position:relative;margin-top:-34px}
 .node{display:flex;gap:14px;align-items:center;border:none;text-align:left;width:100%;background:#fff;border-radius:24px;padding:14px 16px;box-shadow:0 6px 18px rgba(26,46,74,.12);position:relative;border-left:10px solid var(--c,#2D6BE4)}
 .node:active{transform:scale(.98)}
@@ -228,6 +234,11 @@ details.sess .in{padding:0 14px 12px}
 <script src="ea-labs-a.js"></script>
 <script src="ea-labs-b.js"></script>
 <script src="ea-labs-c.js"></script>
+<script src="ea-games.js"></script>
+<script src="ea-game-kit.js"></script>
+<script src="ea-games-a.js"></script>
+<script src="ea-games-b.js"></script>
+<script src="ea-arcade.js"></script>
 <script src="ea-parent.js"></script>
 <script>EA.start();</script>
 <script>
