@@ -124,8 +124,8 @@
     const ex = h('div', { class: 'card' }, h('b', null, '👧 Explorers'));
     d.profiles.forEach(p => ex.append(h('div', { class: 'row mt8' }, h('span', { style: { fontSize: '1.6rem' } }, p.avatar), h('span', { style: { flex: 1 } }, p.name),
       h('button', { class: 'chip btnlike', onclick: () => { if (confirm('Reset all of ' + p.name + '\'s progress? This cannot be undone.')) { d.prog[p.id] = { labs: {}, quiz: {}, missions: {}, badges: {} }; EA.save(); EA.render(); } } }, 'Reset progress'),
-      h('button', { class: 'chip btnlike', onclick: () => { if (confirm('Remove ' + p.name + ' from this device?')) { d.profiles = d.profiles.filter(x => x.id !== p.id); delete d.prog[p.id]; if (d.cur === p.id) d.cur = d.profiles[0] ? d.profiles[0].id : null; EA.save(); EA.go(d.profiles.length ? '/parent' : '/welcome'); } } }, 'Remove'))));
-    ex.append(h('button', { class: 'btn ghost mt12', onclick: () => EA.go('/who') }, '+ Add or switch explorer'));
+      EA.managed() ? null : h('button', { class: 'chip btnlike', onclick: () => { if (confirm('Remove ' + p.name + ' from this device?')) { d.profiles = d.profiles.filter(x => x.id !== p.id); delete d.prog[p.id]; if (d.cur === p.id) d.cur = d.profiles[0] ? d.profiles[0].id : null; EA.save(); EA.go(d.profiles.length ? '/parent' : '/welcome'); } } }, 'Remove'))));
+    ex.append(h('button', { class: 'btn ghost mt12', onclick: () => EA.go('/who') }, EA.managed() ? 'Switch explorer' : '+ Add or switch explorer'));
     box.append(ex);
     // backup
     box.append(h('div', { class: 'card' }, h('b', null, '💾 Backup'), h('p', { class: 'small muted mt8' }, 'Save or restore this device\'s explorers and progress as a file.'),

@@ -259,7 +259,8 @@
   let syncT = null;
   function scheduleSync() { if (!D.fam) return; clearTimeout(syncT); syncT = setTimeout(cloudPush, 2500); }
   EA.syncNow = cloudPush;
-  EA.joinFamily = async function (code) {
+  EA.managed = () => { try { return sessionStorage.getItem('ea_harbor_managed') === '1'; } catch (e) { return false; } };
+  EA.joinFamily = async function (code, mirror) {
     code = String(code || '').trim().toUpperCase();
     if (!/^[A-Z]{2}-[A-Z0-9]{4}$/.test(code)) return { ok: false, msg: 'A family code looks like MA-AB12.' };
     const f = await fb(); if (!f) return { ok: false, msg: 'Could not reach the cloud. Check the internet and try again.' };
@@ -269,7 +270,14 @@
       const fam = snap.data(); let added = 0;
       for (const p of (fam.profiles || [])) {
         const id = String(p.id);
-        if (!D.profiles.some(x => x.id === id)) { D.profiles.push({ id, name: p.name || 'Explorer', avatar: p.avatar || '🌟', band: bandFromGrade(p.gradeId) }); added++; }
+        const ex = D.profiles.find(x => x.id === id);
+        if (!ex) { D.profiles.push({ id, name: p.name || 'Explorer', avatar: p.avatar || '🌟', band: bandFromGrade(p.gradeId) }); added++; }
+        else if (mirror) { ex.name = p.name || ex.name; ex.avatar = p.avatar || ex.avatar; ex.band = bandFromGrade(p.gradeId) || ex.band; }
+      }
+      if (mirror && (fam.profiles || []).length) {
+        const ids = new Set((fam.profiles || []).map(p => String(p.id)));
+        D.profiles = D.profiles.filter(x => ids.has(x.id));
+        if (!D.profiles.some(x => x.id === D.cur)) D.cur = D.profiles[0] ? D.profiles[0].id : null;
       }
       D.fam = code; D.famPin = fam.parentPin || '';
       if (!D.cur && D.profiles.length) D.cur = D.profiles[0].id;
@@ -406,7 +414,8 @@
         h('span', { style: { fontSize: '2.4rem' } }, p.avatar), h('span', { style: { flex: 1 } }, h('b', null, p.name), h('br'), h('span', { class: 'muted small' }, (EA.BANDS.find(b => b.id === p.band) || {}).name + ' · ⭐ ' + st)),
         p.id === D.cur ? h('span', null, '✔️') : null));
     });
-    wrap.append(h('div', { class: 'card mt16' }, h('h3', null, '➕ Add an explorer'), profileForm(() => EA.go('/'), { cta: 'Add explorer' })));
+    if (!EA.managed()) wrap.append(h('div', { class: 'card mt16' }, h('h3', null, '➕ Add an explorer'), profileForm(() => EA.go('/'), { cta: 'Add explorer' })));
+    else wrap.append(h('p', { class: 'muted small mt16' }, 'Add or change children in Harbor → Parents → Children.'));
     return wrap;
   }
 
@@ -663,8 +672,9 @@
     // Harbor hand-off: ?from=harbor&family=MA-XXXX&child=<id>&view=parent
     const q = new URLSearchParams(location.search);
     EA.fromHarbor = q.get('from') === 'harbor';
+    if (EA.fromHarbor) { try { sessionStorage.setItem('ea_harbor_managed', '1'); } catch (e) {} }
     const boot = async () => {
-      if (q.get('family') && q.get('family') !== D.fam) await EA.joinFamily(q.get('family'));
+      if (q.get('family') && (q.get('family') !== D.fam || EA.fromHarbor)) await EA.joinFamily(q.get('family'), EA.fromHarbor);
       if (q.get('child') && D.profiles.some(p => p.id === q.get('child'))) { D.cur = q.get('child'); save(); }
       if (q.get('view') === 'parent' && EA.fromHarbor) { sessionStorage.setItem('ea_harbor_parent', '1'); location.hash = '#/parent'; }
       render();
