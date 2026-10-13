@@ -97,7 +97,7 @@
   /* ======================== 8. Ohm's Law Dash ======================== */
   function resBox(label) { return '<span style="display:inline-block;padding:6px 14px;border:4px solid ' + NAVY + ';border-radius:10px;background:#fff;font-weight:900;font-family:JetBrains Mono,monospace;margin:3px">' + label + '</span>'; }
   K.choiceGame({
-    id: 'ohm', name: "Ohm's Law Dash", emoji: '🧮', blurb: 'Volts, amps and ohms', grades: 'Quests 1 and 6 · ages 8+',
+    id: 'ohm', name: "Ohm's Law Dash", emoji: '🧮', blurb: 'Volts, amps and ohms', grades: 'Quest 1B · ages 8+',
     prompt: 'Work it out!',
     levels: [null,
       { label: 'Add resistors in a row', ms: 16000, kind: 'sum' },

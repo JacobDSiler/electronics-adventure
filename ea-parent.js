@@ -41,7 +41,7 @@
       const pr = EA.PR(p.id);
       const rows = EA.units.map(u => {
         const st = EA.unitStatus(u, p.id);
-        return h('tr', null, h('td', null, u.emoji + ' ' + u.id), h('td', null, st.labsDone + '/' + st.labsTotal), h('td', null, st.quizBest == null ? '—' : st.quizBest + '%'), h('td', null, st.mDone + '/' + st.mTotal), h('td', null, st.badge ? u.badge.emoji : '·'));
+        return h('tr', null, h('td', null, u.emoji + ' ' + EA.qnum(u)), h('td', null, st.labsDone + '/' + st.labsTotal), h('td', null, st.quizBest == null ? '—' : st.quizBest + '%'), h('td', null, st.mDone + '/' + st.mTotal), h('td', null, st.badge ? u.badge.emoji : '·'));
       });
       const bandSel = h('select', { class: 'inp', style: { width: 'auto', padding: '6px 10px' }, onchange: e => { p.band = e.target.value; EA.save(); EA.toast('Level changed'); } },
         EA.BANDS.map(b => h('option', { value: b.id, selected: b.id === p.band }, b.name + ' (' + b.ages + ')')));
@@ -56,7 +56,7 @@
     const d = D(); const box = h('div', null);
     box.append(h('p', { class: 'muted small' }, '35 sessions, about two a week. Predict, build, test, explain. Tap a name to tick a mission done for that explorer.'));
     EA.units.forEach(u => {
-      box.append(h('h3', { class: 'sec', style: { color: u.color } }, u.emoji + ' Quest ' + u.id + ': ' + u.title));
+      box.append(h('h3', { class: 'sec', style: { color: u.color } }, u.emoji + ' ' + EA.qname(u) + ': ' + u.title));
       box.append(h('p', { class: 'small' }, h('b', null, 'Big question: '), u.bigQuestion, h('br'), h('b', null, 'They discover: '), u.answer));
       u.sessions.forEach((m, i) => {
         const key = 'u' + u.id + 's' + i;

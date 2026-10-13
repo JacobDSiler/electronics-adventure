@@ -118,6 +118,8 @@
   EA.labStars = (id, pid) => ((PR(pid) || { labs: {} }).labs[id] || {}).stars || 0;
   EA.totalStars = pid => { const pr = PR(pid); if (!pr) return 0; let n = 0; for (const k in pr.labs) n += pr.labs[k].stars || 0; for (const k in pr.quiz) n += pr.quiz[k].pct >= 90 ? 3 : pr.quiz[k].pct >= 70 ? 2 : 1; for (const k in (pr.games || {})) n += pr.games[k].stars || 0; return n; };
   EA.unit = id => EA.units.find(u => u.id === Number(id));
+  EA.qnum = u => u.num || u.id;
+  EA.qname = u => 'Quest ' + EA.qnum(u);
   EA.unitStatus = function (u, pid) {
     const pr = PR(pid) || { labs: {}, quiz: {}, missions: {}, badges: {} };
     const labsDone = u.labs.filter(id => ((pr.labs[id] || {}).stars || 0) > 0).length;
@@ -337,7 +339,7 @@
       h('div', { class: 'row' },
         h('div', { class: 'brand' }, h('div', { class: 'logo' }, '💡'), h('div', null, h('h1', null, 'Electronics Adventure'), h('small', null, 'Light it. Switch it. Remember it.'))),
         h('button', { class: 'who', onclick: () => EA.go('/who') }, h('span', { class: 'av' }, p.avatar), p.name)),
-      h('div', { class: 'hello' }, 'Hi ' + p.name + '! ', h('span', null, '⭐ ' + EA.totalStars() + ' stars so far · ' + Object.keys(EA.PR().badges).length + ' of 7 badges'))));
+      h('div', { class: 'hello' }, 'Hi ' + p.name + '! ', h('span', null, '⭐ ' + EA.totalStars() + ' stars so far · ' + Object.keys(EA.PR().badges).length + ' of ' + EA.units.length + ' badges'))));
     if (band === 'sprout') {
       wrap.append(h('div', { class: 'card', style: { marginTop: '-34px', position: 'relative' } },
         h('div', { class: 'center' }, h('div', { class: 'bigem' }, '🌱'), h('h2', null, 'Little Sparks'), h('p', { class: 'muted mt8' }, 'Big buttons for little hands!'),
@@ -350,7 +352,7 @@
       q.append(h('button', { class: 'node' + (st.badge ? ' got' : ''), style: { '--c': u.color }, onclick: () => EA.go('/unit/' + u.id) },
         next === u && !st.badge ? h('span', { class: 'nextpill' }, 'Next up') : null,
         h('div', { class: 'em' }, u.emoji),
-        h('div', { class: 'tx' }, h('span', { class: 'un' }, 'Quest ' + u.id), h('b', null, u.title), h('span', null, u.tagline),
+        h('div', { class: 'tx' }, h('span', { class: 'un' }, EA.qname(u)), h('b', null, u.title), h('span', null, u.tagline),
           h('div', { class: 'bar' }, h('i', { style: { width: st.pct + '%' } }))),
         h('div', { class: 'bd' }, u.badge.emoji)));
     });
@@ -416,12 +418,13 @@
     const wrap = h('div', { style: { '--c': u.color } });
     wrap.append(h('div', { class: 'uhero' },
       h('div', { class: 'row', style: { justifyContent: 'space-between' } }, h('button', { class: 'iconbtn', onclick: () => EA.go('/') }, '←'), h('span', { class: 'starpill' }, '⭐ ' + EA.totalStars())),
-      h('div', { class: 'row mt12' }, h('div', { class: 'em' }, u.emoji), h('div', null, h('div', { style: { fontWeight: 800, opacity: .85, fontSize: '.8rem', letterSpacing: '.08em' } }, 'QUEST ' + u.id), h('h1', null, u.title))),
+      h('div', { class: 'row mt12' }, h('div', { class: 'em' }, u.emoji), h('div', null, h('div', { style: { fontWeight: 800, opacity: .85, fontSize: '.8rem', letterSpacing: '.08em' } }, 'QUEST ' + EA.qnum(u)), h('h1', null, u.title))),
       h('div', { class: 'bq' }, '🤔 ' + u.bigQuestion, ' ', EA.sayBtn(u.bigQuestion))));
     wrap.append(h('div', { class: 'card' }, h('p', null, u.story, ' ', EA.sayBtn(u.story)),
       h('div', { class: 'bar mt12' }, h('i', { style: { width: st.pct + '%' } })),
       h('p', { class: 'small muted mt8' }, st.labsDone + ' of ' + st.labsTotal + ' labs · quiz ' + (st.quizBest == null ? 'not tried' : st.quizBest + '%') + ' · badge ' + (st.badge ? 'earned! ' + u.badge.emoji : 'not yet'))));
 
+    if (u.mnemonic && EA.mnemonicCard) wrap.append(EA.mnemonicCard(u));
     wrap.append(h('h3', { class: 'sec' }, '🧪 Labs ', h('span', { class: 'muted small' }, '(practise on screen)')));
     u.labs.forEach(lid => {
       const lab = EA.labs[lid]; if (!lab) return;
@@ -539,7 +542,7 @@
     };
     const master = all && pr.missions[capKey] && pr.missions[teachKey];
     wrap.append(h('div', { class: 'card mt24 center' }, h('div', { class: 'bigem', style: { filter: master ? 'none' : 'grayscale(1)', opacity: master ? 1 : .4 } }, '👑'), h('h3', null, 'Master Builder'),
-      h('p', { class: 'muted small mt8' }, 'Earn all 7 badges, build a capstone project, and teach one lesson to a sibling.'),
+      h('p', { class: 'muted small mt8' }, 'Earn all ' + EA.units.length + ' badges, build a capstone project, and teach one lesson to a sibling.'),
       h('div', { style: { textAlign: 'left', maxWidth: '360px', margin: '10px auto 0' } }, h('div', { class: 'row' }, h('span', null, all ? '✅' : '⬜'), h('span', null, 'All 7 badges')), mk(capKey, 'I built my capstone project'), mk(teachKey, 'I taught a lesson to a sibling'))));
     if (master) { wrap.append(h('div', { class: 'card center' }, h('b', null, '🎓 Master Builder!'), h('p', { class: 'muted small mt8' }, 'You did it. Time for Demo Day!'))); }
     return wrap;
@@ -564,7 +567,7 @@
   }
   function notebookEditor(pid, qs) {
     const wrap = h('div', { class: 'nb' }, EA.topbar('New notebook page', '/notebook'));
-    const unitOpts = [h('option', { value: '' }, 'Any quest')].concat(EA.units.map(u => h('option', { value: u.id, selected: String(u.id) === qs.get('unit') }, 'Quest ' + u.id + ': ' + u.title)));
+    const unitOpts = [h('option', { value: '' }, 'Any quest')].concat(EA.units.map(u => h('option', { value: u.id, selected: String(u.id) === qs.get('unit') }, EA.qname(u) + ': ' + u.title)));
     const sel = h('select', { class: 'inp' }, unitOpts);
     const pred = h('textarea', { class: 'inp', rows: 2, placeholder: 'I think … will happen' });
     const happened = h('textarea', { class: 'inp', rows: 3, placeholder: 'What happened? What surprised me?' });
@@ -600,7 +603,7 @@
     wrap.append(grid);
     return wrap;
   }
-  const SPROUT_TOYS = {
+  const SPROUT_TOYS = EA.SPROUT_TOYS = {
     light: {
       emoji: '💡', title: 'Light Switch', color: '#F29B38', run(st) {
         let on = false; const bulb = h('div', { class: 'bulb' }, '💡'); const b = h('button', { class: 'bigbtn', style: { margin: '16px auto 0', minWidth: '180px' } }, '🔘');

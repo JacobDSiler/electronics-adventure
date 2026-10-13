@@ -1,6 +1,6 @@
 /* Electronics Adventure service worker: the whole app works offline. Other origins (Firebase, fonts) are never intercepted. */
-const CACHE = "ea-shell-v2";
-const SHELL = ["./", "index.html", "ea-core.js", "ea-content.js", "ea-labs-a.js", "ea-labs-b.js", "ea-labs-c.js", "ea-games.js", "ea-game-kit.js", "ea-games-a.js", "ea-games-b.js", "ea-arcade.js", "ea-parent.js", "manifest.json", "icon.svg", "icon-192.png", "icon-512.png"];
+const CACHE = "ea-shell-v3";
+const SHELL = ["./", "index.html", "ea-core.js", "ea-content.js", "ea-labs-a.js", "ea-labs-b.js", "ea-labs-c.js", "ea-games.js", "ea-game-kit.js", "ea-games-a.js", "ea-games-b.js", "ea-arcade.js", "ea-parts.js", "ea-content-ohm.js", "ea-labs-d.js", "ea-games-c.js", "ea-parent.js", "manifest.json", "icon.svg", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
