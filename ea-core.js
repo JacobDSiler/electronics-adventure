@@ -261,8 +261,10 @@
   EA.syncNow = cloudPush;
   EA.managed = () => { try { return sessionStorage.getItem('ea_harbor_managed') === '1'; } catch (e) { return false; } };
   EA.joinFamily = async function (code, mirror) {
-    code = String(code || '').trim().toUpperCase();
-    if (!/^[A-Z]{2}-[A-Z0-9]{4}$/.test(code)) return { ok: false, msg: 'A family code looks like MA-AB12.' };
+    // Tablet keyboards love to swap the hyphen for a dash or add spaces: keep letters/digits, then rebuild MA-XXXX.
+    code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (code.length === 6) code = code.slice(0, 2) + '-' + code.slice(2);
+    if (!/^[A-Z]{2}-[A-Z0-9]{4}$/.test(code)) return { ok: false, msg: 'That code does not look right (' + (code || 'empty') + '). A family code looks like MA-AB12.' };
     const f = await fb(); if (!f) return { ok: false, msg: 'Could not reach the cloud. Check the internet and try again.' };
     try {
       const snap = await f.fs.getDoc(f.fs.doc(f.db, 'families', code));
@@ -399,7 +401,7 @@
     wrap.append(h('div', { class: 'hero' }, traces(), h('div', { class: 'spark' }, '⚡'),
       h('div', { class: 'brand' }, h('div', { class: 'logo' }, '💡'), h('div', null, h('h1', null, 'Electronics Adventure'), h('small', null, 'Welcome, explorer!')))));
     const joinMsg = h('div', { class: 'feedback' });
-    const code = h('input', { class: 'inp', placeholder: 'MA-AB12 or WA-AB12', maxlength: 7, autocapitalize: 'characters', autocomplete: 'off', value: D.fam || qs.get('family') || '' });
+    const code = h('input', { class: 'inp', placeholder: 'MA-AB12 or WA-AB12', maxlength: 12, autocapitalize: 'characters', autocomplete: 'off', value: D.fam || qs.get('family') || '' });
     const joinBtn = h('button', { class: 'btn wide mt8', onclick: async () => {
       joinBtn.disabled = true; joinMsg.textContent = 'Joining…'; joinMsg.className = 'feedback';
       const r = await EA.joinFamily(code.value); joinBtn.disabled = false;
