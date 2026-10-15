@@ -276,6 +276,12 @@
       }
       if (mirror && (fam.profiles || []).length) {
         const ids = new Set((fam.profiles || []).map(p => String(p.id)));
+        // Rescue progress made under a standalone (local-only) explorer: move it onto the same-named family learner.
+        D.profiles.forEach(x => {
+          if (ids.has(x.id) || !D.prog || !D.prog[x.id]) return;
+          const m = (fam.profiles || []).find(p => String(p.name || '').trim().toLowerCase() === String(x.name || '').trim().toLowerCase());
+          if (m) D.prog = mergeProg(D.prog, { [String(m.id)]: D.prog[x.id] });
+        });
         D.profiles = D.profiles.filter(x => ids.has(x.id));
         if (!D.profiles.some(x => x.id === D.cur)) D.cur = D.profiles[0] ? D.profiles[0].id : null;
       }
