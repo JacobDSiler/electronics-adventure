@@ -259,6 +259,7 @@
   let syncT = null;
   function scheduleSync() { if (!D.fam) return; clearTimeout(syncT); syncT = setTimeout(cloudPush, 2500); }
   EA.syncNow = cloudPush;
+  EA.fmtFam = v => { v = String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); return v.length > 2 ? v.slice(0, 2) + '-' + v.slice(2, 6) : v; };
   EA.managed = () => { try { return sessionStorage.getItem('ea_harbor_managed') === '1'; } catch (e) { return false; } };
   EA.joinFamily = async function (code, mirror) {
     // Tablet keyboards love to swap the hyphen for a dash or add spaces: keep letters/digits, then rebuild MA-XXXX.
@@ -401,7 +402,7 @@
     wrap.append(h('div', { class: 'hero' }, traces(), h('div', { class: 'spark' }, '⚡'),
       h('div', { class: 'brand' }, h('div', { class: 'logo' }, '💡'), h('div', null, h('h1', null, 'Electronics Adventure'), h('small', null, 'Welcome, explorer!')))));
     const joinMsg = h('div', { class: 'feedback' });
-    const code = h('input', { class: 'inp', placeholder: 'MA-AB12 or WA-AB12', maxlength: 12, autocapitalize: 'characters', autocomplete: 'off', value: D.fam || qs.get('family') || '' });
+    const code = h('input', { class: 'inp', placeholder: 'MA-AB12 or WA-AB12', maxlength: 7, autocapitalize: 'characters', autocomplete: 'off', autocorrect: 'off', spellcheck: 'false', value: D.fam || qs.get('family') || '', oninput: e => { e.target.value = EA.fmtFam(e.target.value); } });
     const joinBtn = h('button', { class: 'btn wide mt8', onclick: async () => {
       joinBtn.disabled = true; joinMsg.textContent = 'Joining…'; joinMsg.className = 'feedback';
       const r = await EA.joinFamily(code.value); joinBtn.disabled = false;

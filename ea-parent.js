@@ -111,7 +111,7 @@
     box.append(h('div', { class: 'card' }, h('b', null, 'Sound & reading'), h('div', { class: 'wrapx mt8' }, sw('Sound effects', 'sound'), sw('Read-aloud voice', 'tts'))));
     // family
     const msg = h('div', { class: 'feedback' });
-    const code = h('input', { class: 'inp', placeholder: 'MA-AB12', maxlength: 7, value: d.fam || '', autocapitalize: 'characters' });
+    const code = h('input', { class: 'inp', placeholder: 'MA-AB12', maxlength: 7, value: d.fam || '', autocapitalize: 'characters', autocorrect: 'off', spellcheck: 'false', oninput: e => { e.target.value = EA.fmtFam(e.target.value); } });
     box.append(h('div', { class: 'card' }, h('b', null, '🏠 Family code'), h('p', { class: 'small muted mt8' }, d.fam ? 'Joined ' + d.fam + '. Progress syncs to the cloud.' : 'Join with the same code Math Adventure and Words Adventure use. Explorers and progress sync across devices.'), h('div', { class: 'mt8' }, code),
       h('div', { class: 'wrapx mt8' },
         h('button', { class: 'btn', onclick: async () => { msg.textContent = 'Working…'; msg.className = 'feedback'; const r = await EA.joinFamily(code.value); msg.textContent = r.msg; msg.className = 'feedback ' + (r.ok ? 'good' : 'bad'); } }, d.fam ? 'Re-join / refresh' : 'Join'),
